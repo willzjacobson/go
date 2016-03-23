@@ -1,3 +1,2 @@
 #!/bin/bash
-python ~/an_go/an_go.py
-
+nohup python -u ~/an_go/an_go.py &

@@ -20,15 +20,17 @@ def benchmark_job():
     except Exception as e:
         alerter.send_sms("Benchmark job failed:\n"+str(e))
         l.log("benchmark_job", 3)
-    l.log("benchmark_job", 2)
+    else:
+        l.log("benchmark_job", 2)
 
 def weather_update_job():
+    l.log("weather_update_job", 1)
     try:
-        l.log("weather_update_job", 1)
         weather_run.main()
-        l.log("weather_update_job", 2)
     except Exception as e:
         l.log("weather_update_job", 3)
+    else:
+        l.log("weather_update_job", 2)
 
 def startup_prediction_job():
     l.log("startup_prediction_job", 1)
@@ -38,7 +40,8 @@ def startup_prediction_job():
     except Exception as e:
         alerter.send_sms("Startup prediction job failed:\n"+str(e))
         l.log("startup_prediction_job", 3)
-    l.log("startup_prediction_job", 2)
+    else:
+        l.log("startup_prediction_job", 2)
 
 
 # Handles UTC-US/Eastern conversion
@@ -62,10 +65,12 @@ def startup_time_range(start, end):
     hour = int(time.strftime("%H"))
     if start<end:
         if hour<end and hour>=start:
-            startup_prediction_job()
+            try:
+                startup_prediction_job()
     else:
         if hour<end or hour>=start:
-            startup_prediction_job()
+            try:
+                startup_prediction_job()
 
 def startup_time_range_4to7():
     try:
@@ -79,26 +84,28 @@ def startup_time_range_18to4():
         startup_time_range(18,4)
     except Exception as e:
         l.log("startup_time_range_18to4", 3)
-        time.sleep(300)
 
 
 # Handle Threading
 def run_on_thread(job_func):
-    job_thread = threading.Thread(target = job_func)
-    job_thread.start()
+    try:
+        job_thread = threading.Thread(target = job_func)
+        job_thread.start()
+    except:
+        l.log("run_on_thread",3)
 
 
 def main():
-    print("Starting filewatcher")
+    l.log("Filewatcher script",1)
     watcher_thread = threading.Thread(target=watch.main)
     watcher_thread.start()
 
-    print("Scheduling jobs")
+    l.log("Scheduler",1)
     two_thirty = parse_time_str(2) + ":30"
     schedule.every().day.at(two_thirty).do(run_on_thread, benchmark_job) # 02:30 Eastern
 
     schedule.every(1).minutes.do(startup_time_range_4to7)  # 4->7 Eastern every 15 mins
-    schedule.every(40).minutes.do(startup_time_range_18to4) # 18->4 Easter
+    schedule.every(30).minutes.do(startup_time_range_18to4) # 18->4 Easter
 
     while True:
         schedule.run_pending()
