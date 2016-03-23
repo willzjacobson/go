@@ -29,7 +29,7 @@ function runPyScript(filePath) {
 }
 
 
-new CronJob('* * * * * *', function(){
-	runPyScript('./py_jobs/predictions.py');
-	console.log('running');
-}, null, true, 'America/New_York');
+// new CronJob('* * * * * *', function(){
+// 	runPyScript('./py_jobs/predictions.py');
+// 	console.log('running');
+// }, null, true, 'America/New_York');
