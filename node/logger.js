@@ -1,6 +1,6 @@
 var winston = require('winston');
 
-var logfile = 'logs.log'
+var logfile = 'logs.log';
 winston.add(winston.transports.File, {
     filename: logfile,
     level: 'silly',
@@ -10,6 +10,6 @@ winston.add(winston.transports.File, {
 
 var logger = function(message) {
     winston.info(message);
-}
+};
 
-module.exports = logger
+module.exports = logger;
