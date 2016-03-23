@@ -67,10 +67,14 @@ def startup_time_range(start, end):
         if hour<end and hour>=start:
             try:
                 startup_prediction_job()
+            except:
+                l.log("startup_time_range",3)
     else:
         if hour<end or hour>=start:
             try:
                 startup_prediction_job()
+            except:
+                l.log("startup_time_range",3)
 
 def startup_time_range_4to7():
     try:
