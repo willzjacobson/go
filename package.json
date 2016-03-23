@@ -1,0 +1,23 @@
+{
+  "name": "an_go",
+  "version": "1.0.0",
+  "description": "",
+  "main": "an_go.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PrescriptiveData/an_go.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PrescriptiveData/an_go/issues"
+  },
+  "homepage": "https://github.com/PrescriptiveData/an_go#readme",
+  "dependencies": {
+    "cron": "^1.1.0",
+    "python-shell": "^0.4.0"
+  }
+}
