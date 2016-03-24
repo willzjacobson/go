@@ -10,7 +10,6 @@ function scheduleCronJob(timeStr, filePath) {
 		var splitPath = filePath.split('/');
 		log('starting ' + splitPath[splitPath.length-1]);
 		runPyScript(filePath);
-		log('completing ' + splitPath[splitPath.length-1]);
 	}, null, true, 'America/New_York');
 }
 
@@ -33,7 +32,6 @@ scheduleCronJob('0 30 2 * * *', './py_jobs/benchmarks.py');  // everyday at 02:3
 scheduleCronJob('0 0/25 4-7 * * *', './py_jobs/predictions.py');  // run every 25 minutes everyday between 04:00 and 07:00
 scheduleCronJob('0 0 18-23 * * *', './py_jobs/predictions.py');  // run on the hour everyday between 18:00 and 23:00
 scheduleCronJob('0 0 0-3 * * *', './py_jobs/predictions.py');  // run on the hour everyday between 00:00 and 03:00
-scheduleCronJob('* * * * * *', './py_jobs/predictions.py'); 
 
 
 // For testing
