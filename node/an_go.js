@@ -20,8 +20,11 @@ function runPyScript(filePath) {
 		if (err) {
 			log('error: ' + err);
 			sendSMS(err.message);
-		} 
-		if (results) console.log('results: ' + results);
+		} else {
+			var splitPath = filePath.split('/');
+			log('successfully completing ' + splitPath[splitPath.length-1]);
+			if (results) console.log('results: ' + results);
+		}
 	});
 }
 
