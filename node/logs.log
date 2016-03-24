@@ -77,3 +77,44 @@
 2016-03-24T15:49:07.138Z - info: completing test.py
 2016-03-24T15:50:51.422Z - info: starting test.py
 2016-03-24T15:50:51.425Z - info: completing test.py
+2016-03-24T15:52:29.917Z - info: starting test.py
+2016-03-24T15:52:29.926Z - info: completing test.py
+2016-03-24T15:52:30.921Z - info: starting test.py
+2016-03-24T15:52:30.923Z - info: completing test.py
+2016-03-24T15:52:31.927Z - info: starting test.py
+2016-03-24T15:52:31.928Z - info: completing test.py
+2016-03-24T15:52:32.932Z - info: starting test.py
+2016-03-24T15:52:32.936Z - info: completing test.py
+2016-03-24T15:52:33.932Z - info: starting test.py
+2016-03-24T15:52:33.934Z - info: completing test.py
+2016-03-24T15:52:34.938Z - info: starting test.py
+2016-03-24T15:52:34.940Z - info: completing test.py
+2016-03-24T15:52:35.938Z - info: starting test.py
+2016-03-24T15:52:35.940Z - info: completing test.py
+2016-03-24T15:53:01.050Z - info: starting test.py
+2016-03-24T15:53:01.059Z - info: completing test.py
+2016-03-24T15:53:02.050Z - info: starting test.py
+2016-03-24T15:53:02.052Z - info: completing test.py
+2016-03-24T15:53:03.054Z - info: starting test.py
+2016-03-24T15:53:03.055Z - info: completing test.py
+2016-03-24T15:53:10.295Z - info: starting test.py
+2016-03-24T15:53:10.303Z - info: completing test.py
+2016-03-24T15:53:10.318Z - info: error: Error:   File "py_jobs/test.py", line 1
+    print 'hey!
+              ^
+SyntaxError: EOL while scanning string literal
+
+2016-03-24T15:53:11.298Z - info: starting test.py
+2016-03-24T15:53:11.300Z - info: completing test.py
+2016-03-24T15:53:11.318Z - info: error: Error:   File "py_jobs/test.py", line 1
+    print 'hey!
+              ^
+SyntaxError: EOL while scanning string literal
+
+2016-03-24T15:53:12.302Z - info: starting test.py
+2016-03-24T15:53:12.304Z - info: completing test.py
+2016-03-24T15:53:12.322Z - info: error: Error:   File "py_jobs/test.py", line 1
+    print 'hey!
+              ^
+SyntaxError: EOL while scanning string literal
+
