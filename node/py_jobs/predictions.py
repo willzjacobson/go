@@ -2,7 +2,7 @@
 
 import larkin.weather.run as weather_run
 import larkin.predictions.startup.run as srun
-l
+
 try:
     weather_run.main()
 except:
@@ -11,4 +11,4 @@ except:
 try:
     srun.main()
 except:
-	print: 'Startup prediction failed'
+	print 'Startup prediction failed'
