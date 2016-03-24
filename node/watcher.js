@@ -1,6 +1,6 @@
 var chokidar = require('chokidar');
 var fs = require('fs');
-var mongo = require('./mongo_utils');
+var mongo = require('./mongo-utils');
 var path = require('path');
 var logger = require('./logger');
 
@@ -25,13 +25,15 @@ function processFile(path) {
         json = JSON.parse(json); // this should be in try/catch block
 
         // add to predictions
-        // mongo.analyticsConnection()
-        // .then(function(db) {
-        //     return mongo.insert(db, 'startup_prediction', json);
-        // })
-        // .catch(err => console.log("Error: ", err))
+        mongo.analyticsConnection()
+        .then(function(db) {
+            return mongo.insert(db, 'startup_prediction', json);
+        })
+        .catch(err => console.log("Error: ", err))
+
         // create message and add to messages
         create_save_message(json);
+
         // archive file
         // archiveFile(path);
     });
@@ -76,20 +78,25 @@ function create_save_message(json_data) {
     }
 
     mongo.skynetConnection()
-    .then(db => {
-        db.collection('messages').update({ 'namespace' : building, 'name' : action, 'status' : 'pending', 'date' : message_date },
-        { '$set' : { 'status' : 'cancel' }},
-        { 'multi' : true },
-        function(err, results) {
-            console.log("Done updating")
+        .then(db => {
+            return mongo.update(db,
+                        'messages',
+                        { 'namespace' : building, 'name' : action, 'status' : 'pending', 'date' : message_date },
+                        { '$set' : { 'status' : 'cancel' }},
+                        { 'multi' : true })
+        }).then(db => {
+            return mongo.update(db,
+                        'messages',
+                        { 'namespace' : building, 'name' : action, 'status' : 'ack', 'date' : message_date },
+                        { '$set' : { 'status' : 'cancel' }},
+                        { 'multi' : true })
+        }).then(db => {
+            return mongo.insert(db, 'messages', message);
+        }).then(db => {
+            db.close();
+        }).then(db => {
+            console.log("done saving message");
+        }).catch(err => {
+            console.log("Error:", err);
         })
-        return db
-    }).then(db => {
-        return mongo.insert(db, 'messages', message);
-    }).then(x => { console.log("done saving message");} )
-        .catch(err => console.log("Error:", err))
-
-
-
-    // console.log("done saving message")
 }

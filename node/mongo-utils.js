@@ -23,17 +23,23 @@ function analyticPromise() {
 }
 
 
-function closeMongo(db) {
-    return db.close();
-}
-
-
 function insertToCollection(db, collection, doc) {
     return new Promise((resolve, reject) => {
         var col = db.collection(collection);
         col.insert(doc, (err, result) => {
             if(err) reject(err);
-            else resolve(result);
+            else resolve(db);
+        });
+    });
+}
+
+
+function updateCollection(db, collection, criteria, update, options) {
+    return new Promise((resolve, reject) => {
+        db.collection(collection).update(criteria, update, options, (err, result) => {
+            if(err) reject(err);
+            else resolve(db);
+            // else resolve(result);
         });
     });
 }
@@ -42,5 +48,6 @@ function insertToCollection(db, collection, doc) {
 module.exports = {
     skynetConnection : skynetPromise,
     analyticsConnection : analyticPromise,
-    insert : insertToCollection
+    insert : insertToCollection,
+    update : updateCollection
 }
