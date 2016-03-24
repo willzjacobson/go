@@ -76,18 +76,18 @@ def startup_time_range(start, end):
             except:
                 l.log("startup_time_range",3)
 
-def startup_time_range_4to7():
+def startup_time_range_1to4():
     try:
-        startup_time_range(4,7)
+        startup_time_range(1,4)
     except Exception as e:
-        l.log("startup_time_range_4to7", 3)
+        l.log("startup_time_range_1to4", 3)
         time.sleep(600)
 
-def startup_time_range_18to4():
+def startup_time_range_18to1():
     try:
-        startup_time_range(18,4)
+        startup_time_range(18,1)
     except Exception as e:
-        l.log("startup_time_range_18to4", 3)
+        l.log("startup_time_range_18to1", 3)
 
 
 # Handle Threading
@@ -105,11 +105,11 @@ def main():
     watcher_thread.start()
 
     l.log("Scheduler",1)
-    two_thirty = parse_time_str(2) + ":30"
+    two_thirty = parse_time_str(5) + ":00"
     schedule.every().day.at(two_thirty).do(run_on_thread, benchmark_job) # 02:30 Eastern
 
-    schedule.every(1).minutes.do(startup_time_range_4to7)  # 4->7 Eastern every 15 mins
-    schedule.every(30).minutes.do(startup_time_range_18to4) # 18->4 Easter
+    schedule.every(1).minutes.do(startup_time_range_1to4)  # 4->7 Eastern every 15 mins
+    schedule.every(30).minutes.do(startup_time_range_18to1) # 18->4 Easter
 
     while True:
         schedule.run_pending()
