@@ -32,7 +32,7 @@ function processFile(path) {
         mongo.analyticsConnection()
         .then(function(db) {
             return mongo.insert(db, 'startup_prediction', jfixed, { 'checkKeys' : false });
-        })
+        }).then(db => { db.close() })
         .catch(err => console.log("Error: ", err))
 
         // create message and add to messages
