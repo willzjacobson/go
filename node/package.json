@@ -4,7 +4,7 @@
   "description": "",
   "main": "an_go.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+     "test": "mocha testing/test_specs.js"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/PrescriptiveData/an_go#readme",
   "dependencies": {
+    "chai": "^3.5.0",
     "cron": "^1.1.0",
     "python-shell": "^0.4.0",
     "winston": "^2.2.0"

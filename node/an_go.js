@@ -22,8 +22,7 @@ function runPyScript(filePath) {
 	});
 }
 
-
-// Scehule benchmarks
+// Schedule benchmarks
 scheduleCronJob('0 30 2 * * *', './py_jobs/benchmarks.py');  // everyday at 02:30
 
 // Schedule predictions
@@ -32,6 +31,8 @@ scheduleCronJob('0 0 18-23 * * *', './py_jobs/predictions.py');  // run on the h
 scheduleCronJob('0 0 0-3 * * *', './py_jobs/predictions.py');  // run on the hour everyday between 00:00 and 03:00
 
 
-
-
-
+// For testing
+module.exports = {
+	scheduleCronJob: scheduleCronJob,
+	runPyScript: runPyScript
+};
