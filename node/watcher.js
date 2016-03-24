@@ -22,12 +22,16 @@ function processFile(path) {
             logger("Error reading file " + path);
             return;
         }
+        // manually updated decimals in key names until analytics output changes
+        jfixed = json.replace(/00\.000Z":/g,'00 000Z":')
+        jfixed = JSON.parse(jfixed);
+
         json = JSON.parse(json); // this should be in try/catch block
 
         // add to predictions
         mongo.analyticsConnection()
         .then(function(db) {
-            return mongo.insert(db, 'startup_prediction', json);
+            return mongo.insert(db, 'startup_prediction', jfixed, { 'checkKeys' : false });
         })
         .catch(err => console.log("Error: ", err))
 
@@ -35,7 +39,7 @@ function processFile(path) {
         create_save_message(json);
 
         // archive file
-        // archiveFile(path);
+        archiveFile(path);
     });
 }
 
@@ -57,7 +61,7 @@ function create_save_message(json_data) {
     var startup_datetime_str = json_data["345_Park"]["random_forest"]["best_start_time"]["time"];
     var startup_dt = new Date(startup_datetime_str);
     var message_date = new Date(startup_datetime_str);
-    var message_date = new Date(message_date.setUTCHours(0,0,0,0));
+    message_date = new Date(message_date.setUTCHours(0,0,0,0));
     var rightNow = new Date();
 
     var building = "345_Park";
@@ -69,7 +73,8 @@ function create_save_message(json_data) {
         "name": action,
         "body": {
             "score": json_data["345_Park"]["random_forest"]["best_start_time"]["score"],
-            "create_time" : rightNow
+            "time-of-doc-generation" : rightNow,
+            "prediction-time" : startup_dt
         },
         "status": "pending",
         "time": startup_dt,

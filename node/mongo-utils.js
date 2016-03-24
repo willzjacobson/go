@@ -23,10 +23,10 @@ function analyticPromise() {
 }
 
 
-function insertToCollection(db, collection, doc) {
+function insertToCollection(db, collection, doc, options) {
     return new Promise((resolve, reject) => {
         var col = db.collection(collection);
-        col.insert(doc, (err, result) => {
+        col.insert(doc, options, (err, result) => {
             if(err) reject(err);
             else resolve(db);
         });
