@@ -12,11 +12,6 @@ var an_go = require('../an_go.js');
 
 describe ('an_go.js file', function() {
 
-	// Deletes the text file created by py.txt
-	afterEach(function() {
-		
-	})
-
 	describe('runPyScript function', function() {
 
 		it('runs a python script', function(done) {

@@ -4,7 +4,7 @@
   "description": "",
   "main": "an_go.js",
   "scripts": {
-     "test": "mocha testing/test_specs.js"
+    "test": "mocha testing/test_specs.js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +20,7 @@
     "chai": "^3.5.0",
     "cron": "^1.1.0",
     "python-shell": "^0.4.0",
+    "twilio": "^2.9.0",
     "winston": "^2.2.0"
   }
 }

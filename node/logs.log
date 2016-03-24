@@ -118,3 +118,52 @@ SyntaxError: EOL while scanning string literal
               ^
 SyntaxError: EOL while scanning string literal
 
+2016-03-24T16:14:59.028Z - info: starting predictions.py
+2016-03-24T16:14:59.036Z - info: completing predictions.py
+2016-03-24T16:14:59.133Z - info: error: Error:   File "py_jobs/predictions.py", line 14
+    print: 'Startup prediction failed'
+         ^
+SyntaxError: invalid syntax
+
+2016-03-24T16:15:00.030Z - info: starting predictions.py
+2016-03-24T16:15:00.033Z - info: completing predictions.py
+2016-03-24T16:15:00.051Z - info: error: Error:   File "py_jobs/predictions.py", line 14
+    print: 'Startup prediction failed'
+         ^
+SyntaxError: invalid syntax
+
+2016-03-24T16:15:01.032Z - info: starting predictions.py
+2016-03-24T16:15:01.034Z - info: completing predictions.py
+2016-03-24T16:15:01.052Z - info: error: Error:   File "py_jobs/predictions.py", line 14
+    print: 'Startup prediction failed'
+         ^
+SyntaxError: invalid syntax
+
+2016-03-24T16:16:03.139Z - info: starting predictions.py
+2016-03-24T16:16:03.146Z - info: completing predictions.py
+2016-03-24T16:16:03.162Z - info: error: Error:   File "py_jobs/predictions.py", line 14
+    print: 'Startup prediction failed'
+         ^
+SyntaxError: invalid syntax
+
+2016-03-24T16:16:04.142Z - info: starting predictions.py
+2016-03-24T16:16:04.144Z - info: completing predictions.py
+2016-03-24T16:16:04.162Z - info: error: Error:   File "py_jobs/predictions.py", line 14
+    print: 'Startup prediction failed'
+         ^
+SyntaxError: invalid syntax
+
+2016-03-24T16:16:05.148Z - info: starting predictions.py
+2016-03-24T16:16:05.150Z - info: completing predictions.py
+2016-03-24T16:16:05.167Z - info: error: Error:   File "py_jobs/predictions.py", line 14
+    print: 'Startup prediction failed'
+         ^
+SyntaxError: invalid syntax
+
+2016-03-24T16:16:06.153Z - info: starting predictions.py
+2016-03-24T16:16:06.155Z - info: completing predictions.py
+2016-03-24T16:16:06.173Z - info: error: Error:   File "py_jobs/predictions.py", line 14
+    print: 'Startup prediction failed'
+         ^
+SyntaxError: invalid syntax
+
