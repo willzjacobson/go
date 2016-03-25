@@ -1,1 +1,1 @@
-nohup nodejs ~/an_go_node/an-go.js &
+nohup nodejs ~/an_go/an_go.js &

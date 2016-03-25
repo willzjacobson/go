@@ -1,13 +1,13 @@
 var MongoClient = require('mongodb').MongoClient;
 
 // Connection URL
-var skynetUrl = require('./secrets').skynetUrl;
-var analyticsUrl = require('./secrets').analyticsUrl;
+var skynetUrl = require('../secrets').skynetUrl;
+var analyticsUrl = require('../secrets').analyticsUrl;
 
 function mongoConnPromise(url) {
-    return new Promise((resolve, reject) => {
+    return new Promise(function(resolve, reject) {
         // Use connect method to connect to the Server
-        MongoClient.connect(url, (err, db) => {
+        MongoClient.connect(url, function(err, db) {
             if(err) reject(err);
             else resolve(db);
         });
@@ -24,9 +24,9 @@ function analyticPromise() {
 
 
 function insertToCollection(db, collection, doc, options) {
-    return new Promise((resolve, reject) => {
+    return new Promise(function(resolve, reject) {
         var col = db.collection(collection);
-        col.insert(doc, options, (err, result) => {
+        col.insert(doc, options, function(err, result) {
             if(err) reject(err);
             else resolve(db);
         });
@@ -35,8 +35,8 @@ function insertToCollection(db, collection, doc, options) {
 
 
 function updateCollection(db, collection, criteria, update, options) {
-    return new Promise((resolve, reject) => {
-        db.collection(collection).update(criteria, update, options, (err, result) => {
+    return new Promise(function(resolve, reject) {
+        db.collection(collection).update(criteria, update, options, function(err, result) {
             if(err) reject(err);
             else resolve(db);
             // else resolve(result);

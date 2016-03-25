@@ -1,8 +1,9 @@
 var chokidar = require('chokidar');
 var fs = require('fs');
-var mongo = require('./mongo-utils');
+var request = require('request');
 var path = require('path');
 var logger = require('./logger');
+var mongo = require('./mongo-utils');
 
 var home = process.env.HOME;
 var log_directory = path.join(home,".larkin/jsons/startup");
@@ -32,8 +33,8 @@ function processFile(path) {
         mongo.analyticsConnection()
         .then(function(db) {
             return mongo.insert(db, 'startup_prediction', jfixed, { 'checkKeys' : false });
-        }).then(db => { db.close() })
-        .catch(err => console.log("Error: ", err))
+        }).then(function(db) { db.close() })
+        .catch(function(err) { console.log("Error: ", err)})
 
         // create message and add to messages
         create_save_message(json);
@@ -46,7 +47,7 @@ function processFile(path) {
 function archiveFile(filePath) {
     var filename = path.basename(filePath);
     var newPath = path.join(archive_directory, filename);
-    fs.rename(filePath, newPath, (err) => {
+    fs.rename(filePath, newPath, function(err) {
         if(err) {
             logger("Error moving file ", filePath);
             logger(err);
@@ -74,34 +75,73 @@ function create_save_message(json_data) {
         "body": {
             "score": json_data["345_Park"]["random_forest"]["best_start_time"]["score"],
             "time-of-doc-generation" : rightNow,
-            "prediction-time" : startup_dt
+            "prediction-time" : startup_dt,
+            "method": "directPlacement"
         },
-        "status": "pending",
+        "status": "cancel",
         "time": startup_dt,
         "type": "alert",
         "fe_vis": true
     }
 
+    var messageAPI = {
+        "namespace": building,
+        "date": message_date,
+        "name": action,
+        "body": {
+            "score": json_data["345_Park"]["random_forest"]["best_start_time"]["score"],
+            "time-of-doc-generation" : rightNow,
+            "prediction-time" : startup_dt,
+            "method": "API"
+        },
+        "status": "cancel",
+        "time": startup_dt,
+        "type": "alert",
+        "fe_vis": true
+    }
+
+
+    // Use node request library to post that message to https://byuldings.nantum.io/345_Park/messages
+    var options = {
+        url: 'https://buildings.nantum.io/345_messages',
+        "method": "POST",
+        headers: {
+            "authorization": "7McdaRC6fULlka2cPgsZ",
+            "version": "0.0.1"
+        },
+        "json": true,
+        "body": messageAPI
+    }
+
+    function cb(err, res, body) {
+        if (err) logger(err)
+        if (!err && res.statusCode == 200) console.log(body);
+    }
+
+    request(options, cb);
+
+
+    // Alternately, place message in db directly
     mongo.skynetConnection()
-        .then(db => {
+        .then(function(db) {
             return mongo.update(db,
                         'messages',
                         { 'namespace' : building, 'name' : action, 'status' : 'pending', 'date' : message_date },
                         { '$set' : { 'status' : 'cancel' }},
                         { 'multi' : true })
-        }).then(db => {
+        }).then(function(db) {
             return mongo.update(db,
                         'messages',
                         { 'namespace' : building, 'name' : action, 'status' : 'ack', 'date' : message_date },
                         { '$set' : { 'status' : 'cancel' }},
                         { 'multi' : true })
-        }).then(db => {
+        }).then(function(db) {
             return mongo.insert(db, 'messages', message);
-        }).then(db => {
+        }).then(function(db) {
             db.close();
-        }).then(db => {
+        }).then(function(db) {
             console.log("done saving message");
-        }).catch(err => {
+        }).catch(function(db) {
             console.log("Error:", err);
         })
 }

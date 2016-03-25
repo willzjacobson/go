@@ -2,6 +2,7 @@ var CronJob = require('cron').CronJob;
 var PythonShell = require('python-shell');
 var log = require('./logger');
 var sendSMS = require('./sms');
+require('./watcher.js');
 
 
 // Job scheduler function
