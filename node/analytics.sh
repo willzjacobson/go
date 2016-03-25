@@ -1,0 +1,1 @@
+nohup nodejs ~/an_go/an_go.js &

@@ -7,8 +7,5 @@ try:
     weather_run.main()
 except:
 	print 'Weather update failed'
-
-try:
-    srun.main()
-except:
-	print 'Startup prediction failed'
+finally:
+	srun.main()
