@@ -80,7 +80,10 @@ def save_timeseries(json_data):
 def create_save_message(json_data):
     # create message from json file
     time_now = datetime.datetime.utcnow().replace(hour=0, minute=0,second=0,microsecond=0)
-    startup_datetime = json_data["345_Park"]["random_forest"]["best_start_time"]["time"]
+    startup_dt_string = json_data["345_Park"]["random_forest"]["best_start_time"]["time"]
+    startup_datetime = datetime.datetime.strptime(startup_dt_string, "%Y-%m-%dT%H:%M:%S.%fZ")
+    startup_hour = startup_datetime.hour - 1
+    adj_startup_datetime = startup_datetime.replace(hour=startup_hour)
     st_dt_list = startup_datetime.split("T")
     pred_day = int(st_dt_list[0].split("-")[2])
     pred_hour = int(st_dt_list[1].split(":")[0])
@@ -97,10 +100,12 @@ def create_save_message(json_data):
         "date": time_now,
         "name": "morning-startup",
         "body": {
-            "score": json_data["345_Park"]["random_forest"]["best_start_time"]["score"]
+            "score": json_data["345_Park"]["random_forest"]["best_start_time"]["score"],
+            "time-of-doc-generation" : datetime.datetime.utcnow(),
+            "prediction-time" : adj_startup_datetime
         },
         "status": "pending",
-        "time": startup_datetime,
+        "time": adj_startup_datetime,
         "type": "alert",
         "fe_vis": True
     }
