@@ -1,3 +1,4 @@
+require('dotenv').config();
 var AWS = require('aws-sdk');
 var chokidar = require('chokidar');
 var fs = require('fs');
@@ -6,7 +7,6 @@ var path = require('path');
 var logger = require('./logger');
 var mongo = require('./mongo-utils');
 
-require('dotenv').config();
 var home = process.env.HOME;
 var log_directory = path.join(home,".larkin/jsons/startup");
 var archive_directory = path.join(home,".larkin/archive");
@@ -73,9 +73,9 @@ function archiveFile(filePath, data) {
             // });
 
             // delete file
-            fs.unlink(filePath, function(err) {
-                logger("Error deleting file " + filePath);
-            });
+            // fs.unlink(filePath, function(err) {
+            //     logger("Error deleting file " + filePath);
+            // });
         }
     });
 }
