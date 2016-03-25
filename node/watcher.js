@@ -62,15 +62,15 @@ function archiveFile(filePath, data) {
         } else {
             logger("Uploaded file to S3: " + filePath);
 
-            // // now move file to archive dir
-            // var filename = path.basename(filePath);
-            // var newPath = path.join(archive_directory, filename);
-            // fs.rename(filePath, newPath, function(err) {
-            //     if(err) {
-            //         logger("Error moving file to archive directory: ", filePath);
-            //         logger(err);
-            //     } else logger("Archived file " + filePath);
-            // });
+            // now move file to archive dir
+            var filename = path.basename(filePath);
+            var newPath = path.join(archive_directory, filename);
+            fs.rename(filePath, newPath, function(err) {
+                if(err) {
+                    logger("Error moving file to archive directory: ", filePath);
+                    logger(err);
+                } else logger("Archived file " + filePath);
+            });
 
             // delete file
             // fs.unlink(filePath, function(err) {
