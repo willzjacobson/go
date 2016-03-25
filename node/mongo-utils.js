@@ -1,8 +1,8 @@
 var MongoClient = require('mongodb').MongoClient;
 
 // Connection URL
-var skynetUrl = 'mongodb://localhost:27017/myproject';
-var analyticsUrl = 'mongodb://localhost:27017/myproject';
+var skynetUrl = require('./secrets').skynetUrl;
+var analyticsUrl = require('./secrets').analyticsUrl;
 
 function mongoConnPromise(url) {
     return new Promise((resolve, reject) => {
