@@ -1,4 +1,5 @@
 # coding=utf-8
+import datetime
 import time
 import schedule
 import threading
@@ -36,6 +37,9 @@ def startup_prediction_job():
     l.log("startup_prediction_job", 1)
     try:
         weather_update_job()
+        # set variable with start time
+        with open('prediction_start.txt', 'w') as f:
+            f.write(str(datetime.datetime.utcnow()))
         srun.main()
     except Exception as e:
         alerter.send_sms("Startup prediction job failed:\n"+str(e))

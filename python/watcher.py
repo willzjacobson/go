@@ -87,11 +87,14 @@ def create_save_message(json_data):
     # don't save message if prediction is too far in future
     now_hour = datetime.datetime.utcnow().hour
     now_day = time_now.day
-    pred_day = startup_datetime.day    
+    pred_day = startup_datetime.day
     if (pred_day != now_day) and (now_hour<21):
         # todo: log error here
         print "not creating a message for tomorrow"
         return
+
+    with open('prediction_start.txt', 'r') as f:
+        start_time = f.read()
 
     print "preparing message"
     message = {
@@ -100,8 +103,9 @@ def create_save_message(json_data):
         "name": "morning-startup",
         "body": {
             "score": json_data["345_Park"]["random_forest"]["best_start_time"]["score"],
-            "time-of-doc-generation" : datetime.datetime.utcnow(),
-            "prediction-time" : adj_startup_datetime
+            "prediction-time" : adj_startup_datetime,
+            "analysis-start-time" : start_time,
+            "analysis-finish-time" : datetime.datetime.utcnow()
         },
         "status": "pending",
         "time": adj_startup_datetime,
