@@ -84,11 +84,10 @@ def create_save_message(json_data):
     startup_datetime = datetime.datetime.strptime(startup_dt_string, "%Y-%m-%dT%H:%M:%S.%fZ")
     startup_hour = startup_datetime.hour - 1
     adj_startup_datetime = startup_datetime.replace(hour=startup_hour)
-    st_dt_list = startup_datetime.split("T")
-    pred_day = int(st_dt_list[0].split("-")[2])
-    pred_hour = int(st_dt_list[1].split(":")[0])
+    # don't save message if prediction is too far in future
     now_hour = datetime.datetime.utcnow().hour
     now_day = time_now.day
+    pred_day = startup_datetime.day    
     if (pred_day != now_day) and (now_hour<21):
         # todo: log error here
         print "not creating a message for tomorrow"
