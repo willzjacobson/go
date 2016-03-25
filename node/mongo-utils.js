@@ -1,8 +1,8 @@
 var MongoClient = require('mongodb').MongoClient;
 
 // Connection URL
-var skynetUrl = require('../secrets').skynetUrl;
-var analyticsUrl = require('../secrets').analyticsUrl;
+var skynetUrl = process.env.MONGO_SKYNET_URL;
+var analyticsUrl = process.env.MONGO_ANALYTICS_URL;
 
 function mongoConnPromise(url) {
     return new Promise(function(resolve, reject) {
