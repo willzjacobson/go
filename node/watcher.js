@@ -45,7 +45,8 @@ function processFile(path) {
 
         // update state
         var state = json["345_Park"]["random_forest"]["best_start_time"]["time"];
-        updateState("345_Park", null, "morning_startup", state);
+        updateState("345_Park", null, "morning_startup_time", state);
+        updateState("345_Park", null, "morning_startup_status", "pending");
 
         // archive file
         archiveFile(path, jsonStr);
