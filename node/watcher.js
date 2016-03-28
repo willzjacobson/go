@@ -126,7 +126,7 @@ function create_save_message(json_data) {
 
     // Use node request library to post that message to https://byuldings.nantum.io/345_Park/messages
     var options = {
-        url: 'https://buildings.nantum.io/345_messages',
+        url: 'https://buildings.nantum.io/345_Park/messages',
         "method": "POST",
         headers: {
             "authorization": "7McdaRC6fULlka2cPgsZ",
