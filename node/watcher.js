@@ -11,6 +11,8 @@ var home = process.env.HOME;
 var log_directory = path.join(home,".larkin/jsons/startup");
 var archive_directory = path.join(home,".larkin/archive");
 
+AWS.config.update({"region" : "us-east-1"});
+
 var watcher = chokidar.watch(log_directory, { persistent: true });
 // automatically scans directory when it starts,
 // so no need to manually check for existing files
@@ -89,6 +91,7 @@ function create_save_message(json_data) {
     var message_date = new Date(startup_datetime_str);
     message_date = new Date(message_date.setUTCHours(0,0,0,0));
     var rightNow = new Date();
+    var analysis_start = fs.readFileSync("py_jobs/prediction_start.txt", "utf8")
 
     var building = "345_Park";
     var action = "morning-startup"
@@ -101,6 +104,7 @@ function create_save_message(json_data) {
             "score": json_data["345_Park"]["random_forest"]["best_start_time"]["score"],
             // "prediction-time" : startup_dt,
             "prediction-time" : adj_startup_dt,
+            "analysis-start-time" : analysis_start,
             "analysis-finish-time" : rightNow,
             "method": "directPlacement"
         },
