@@ -175,3 +175,30 @@ function create_save_message(json_data) {
             console.log("Error:", err);
         })
 }
+
+
+function updateState(namespace, target, type, state) {
+    // make GET request to find ID
+    var query = {
+        "type" : type,
+        "target" : target
+    };
+    query = new Buffer(JSON.stringify(query)).toString('base64')
+    var headers = {
+        'User-Agent' : 'request',
+        'authorization' : '7McdaRC6fULlka2cPgsZ',
+        'version' : '0.0.1',
+        'Content-Type' : 'application/json'
+    };
+    var options = {
+        url : "https://buildings.nantum.io/" + namespace + "/states?q=" + query,
+        headers : headers
+    };
+    request(options, function(err, response, body) {
+        if(err) {
+            logger("Error updating state for building " + namespace + " and type " + type);
+            logger(err);
+            return;
+        }
+    });
+}
