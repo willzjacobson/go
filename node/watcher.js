@@ -43,6 +43,10 @@ function processFile(path) {
         // create message and add to messages
         create_save_message(json);
 
+        // update state
+        var state = json["345_Park"]["random_forest"]["best_start_time"]["time"];
+        updateState("345_Park", null, "morning_startup", state);
+
         // archive file
         archiveFile(path, jsonStr);
     });
