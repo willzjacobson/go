@@ -39,15 +39,17 @@ function processFile(path) {
         // create message and add to messages
         create_save_message(json);
 
+        // Update day's timeseries
+
         // archive file
         archiveFile(path, jsonStr);
     });
 }
 
-function savePrediction(json) {
+function savePrediction(jsonWithoutDotsInKeys) {
     mongo.analyticsConnection()
         .then(function(db) {
-            return mongo.insert(db, 'startup_prediction', json, { 'checkKeys' : false });
+            return mongo.insert(db, 'startup_prediction', jsonWithoutDotsInKeys, { 'checkKeys' : false });
         }).then(function(db) { db.close(); })
         .catch(function(err) { console.log("Error: ", err); });
 }
@@ -91,70 +93,85 @@ function create_save_message(json_data) {
     var startup_datetime_str = json_data["345_Park"]["random_forest"]["best_start_time"]["time"];
     var startup_dt = new Date(startup_datetime_str);
     var hours = startup_dt.getUTCHours() - 1;
-    var adj_startup_dt = Date(startup_dt.setUTCHours(hours))
+    var adj_startup_dt = Date(startup_dt.setUTCHours(hours));
     var message_date = new Date(startup_datetime_str);
     message_date = new Date(message_date.setUTCHours(0,0,0,0));
     var rightNow = new Date();
-    var analysis_start = fs.readFileSync("py_jobs/prediction_start.txt", "utf8")
+    var analysis_start = fs.readFileSync("py_jobs/prediction_start.txt", "utf8");
 
     var building = "345_Park";
-    var action = "morning-startup"
+    var action = "morning-startup";
 
-    var message = {
-        "namespace": building,
-        "date": message_date,
-        "name": action,
-        "body": {
-            "score": json_data["345_Park"]["random_forest"]["best_start_time"]["score"],
-            // "prediction-time" : startup_dt,
-            "prediction-time" : adj_startup_dt,
-            "analysis-start-time" : analysis_start,
-            "analysis-finish-time" : rightNow,
-            "method": "directPlacement"
-        },
-        "status": "cancel",
-        "time": startup_dt,
-        "type": "alert",
-        "fe_vis": true
-    }
+    var message = { "obj": {
+            "namespace": building,
+            "date": message_date,
+            "name": action,
+            "body": {
+                "score": json_data["345_Park"]["random_forest"]["best_start_time"]["score"],
+                "prediction-time" : adj_startup_dt,
+                "analysis-start-time" : analysis_start,
+                "analysis-finish-time" : rightNow
+            },
+            "status": "pending",
+            "time": adj_startup_dt,
+            "type": "alert",
+            "fe_vis": true
+        }
+    };
 
-    // Use node request library to post that message to https://byuldings.nantum.io/345_Park/messages
+    // Use node request library to update the message for this prediction day, or post one if one doesn't exits
     var headers = {
         "authorization": "7McdaRC6fULlka2cPgsZ",
         "version": "0.0.1",
         "Content-Type": "application/json"
     };
-    var msgPptions = {
-        "url": 'https://buildings.nantum.io/345_Park/messages',
-        "method": "POST",
-        "headers": headers,
-        "json": true,
-        "body": messageAPI
+    var query = {
+        "name": "morning-startup",
+        "date": message_date,
+        "namespace": building
+    };
+    var qs = new Buffer( JSON.stringify( query ) ).toString('base64');
+    var getOptions = {
+        "url": "https://buildings.nantum.io/" + building + "/messages/?q=" + qs,
+        "method": "GET",
+        "headers": headers
     };
 
-    function cb(err, res, body) {
-        if (err) logger(err);
-        if (!err && res.statusCode == 200) console.log(body);
-    }
+    // Do the request
+    request(getOptions, function(err, res, body) {
 
-    request(msgOptions, cb);
-
-    // update daily timeseries
-    var tsGetOptions = {
-        url: 'https://buildings.nantum.io/345_Park/messages',
-
-    }
-    function updateTs(toAppend) {
-
-        var tsOptions = {
-            url: 'https://buildings.nantum.io/345_Park/messages',
-            "method": "POST",
-            headers: headers,
+        var options = {
             "json": true,
-            "body": ts
-        }
-    }
+            "headers": headers,
+            "body": message
+        };
 
+        if (err) {
+            logger("error GETting messages: " + err);
+        }
+        else if (res.statusCode == 200 && body.docs) {
+            // If there are more than 0 messages for the day that the prediction is for
+
+            options.method = "PUT";
+            options.url = "https://buildings.nantum.io/" + building + "/messages/" + body.docs[0]._id;
+
+            request(options, function(err, res, body) {
+                if (err) logger("error PUTing message: " + err.toString());
+                else console.log("Success PUTing message: " + body.toString());
+            });
+
+        } else if (res.statusCode == 200) {
+            // If there are not yet messages for the day the prediction is for
+
+            options.method = "POST";
+            options.url = "https://buildings.nantum.io/" + building + "/messages";
+
+            request(options, function(err, res, body) {
+                if (err) logger("error POSTing message: " + err.toString());
+                else console.log("Success POSTing message: " + body.toString());
+            });
+        }
+    });
 
     // Alternately, place message in db directly
     // mongo.skynetConnection()
