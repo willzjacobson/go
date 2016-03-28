@@ -8,4 +8,7 @@ try:
 except:
 	print 'Weather update failed'
 finally:
+    import datetime
+    with open('prediction_start.txt', 'w') as f:
+        f.write(str(datetime.datetime.utcnow()))
 	srun.main()
