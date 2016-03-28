@@ -195,34 +195,41 @@ function updateState(namespace, target, type, state) {
     };
     request(options, function(err, response, body) {
         if(err) {
-            logger("Error updating state for building " + namespace + " and type " + type);
+            logger("Error lookup up state for building/target/type: " + namespace + "/" + target + "/" + type);
             logger(err);
             return;
         }
+
         var now = new Date();
-        body = JSON.parse(body);
         var update = {
+            namespace: namespace,
+            type: type,
             state: state,
             last_modified: now,
             last_modified_by: "an_go filewatcher"
         };
+        if(target) { update.target = target; }
+        var options = {
+            method : 'PUT',
+            url : "https://buildings.nantum.io/" + namespace + "/states/",
+            headers : headers,
+            json : true,
+            body : { "obj" : update }
+        };
+        body = JSON.parse(body);
         if(body.docs) { // document exists, make PUT request
-            var id = body.docs[0]._id;
-            var options = {
-                method : 'PUT',
-                url : "https://buildings.nantum.io/" + namespace + "/states/" + id,
-                headers : headers,
-                json : true,
-                body : { "obj" : update }
-            };
-            request(options, function(err, response, body) {
-                if(err) {
-                    logger("Error updating state document " + id);
-                    logger(err);
-                }
-            });
+            options.method = 'PUT';
+            options.url += body.docs[0]._id;
         } else { // no document exists, create one with POST
-
+            options.method = 'POST';
         }
+        request(options, function(err, response, body) {
+            if(err) {
+                logger("Error saving state for building/target/type: " + namespace + "/" + target + "/" + type);
+                logger(err);
+                return;
+            }
+            // TODO: check for OK status code
+        });
     });
 }
