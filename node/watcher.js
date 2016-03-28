@@ -43,6 +43,11 @@ function processFile(path) {
         // create message and add to messages
         create_save_message(json);
 
+        // update state
+        var state = json["345_Park"]["random_forest"]["best_start_time"]["time"];
+        updateState("345_Park", null, "morning_startup_time", state);
+        updateState("345_Park", null, "morning_startup_status", "pending");
+
         // archive file
         archiveFile(path, jsonStr);
     });
@@ -174,4 +179,62 @@ function create_save_message(json_data) {
         }).catch(function(err) {
             console.log("Error:", err);
         })
+}
+
+
+function updateState(namespace, target, type, state) {
+    // make GET request to find ID
+    var query = {
+        "type" : type,
+        "target" : target
+    };
+    query = new Buffer(JSON.stringify(query)).toString('base64')
+    var headers = {
+        'authorization' : '7McdaRC6fULlka2cPgsZ',
+        'version' : '0.0.1',
+        'Content-Type' : 'application/json'
+    };
+    var options = {
+        url : "https://buildings.nantum.io/" + namespace + "/states?q=" + query,
+        headers : headers
+    };
+    request(options, function(err, response, body) {
+        if(err) {
+            logger("Error lookup up state for building/target/type: " + namespace + "/" + target + "/" + type);
+            logger(err);
+            return;
+        }
+
+        var now = new Date();
+        var update = {
+            namespace: namespace,
+            type: type,
+            state: state,
+            last_modified: now,
+            last_modified_by: "an_go filewatcher"
+        };
+        if(target) { update.target = target; }
+        var options = {
+            method : 'PUT',
+            url : "https://buildings.nantum.io/" + namespace + "/states/",
+            headers : headers,
+            json : true,
+            body : { "obj" : update }
+        };
+        body = JSON.parse(body);
+        if(body.docs) { // document exists, make PUT request
+            options.method = 'PUT';
+            options.url += body.docs[0]._id;
+        } else { // no document exists, create one with POST
+            options.method = 'POST';
+        }
+        request(options, function(err, response, body) {
+            if(err) {
+                logger("Error saving state for building/target/type: " + namespace + "/" + target + "/" + type);
+                logger(err);
+                return;
+            }
+            // TODO: check for OK status code
+        });
+    });
 }
