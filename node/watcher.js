@@ -185,7 +185,6 @@ function updateState(namespace, target, type, state) {
     };
     query = new Buffer(JSON.stringify(query)).toString('base64')
     var headers = {
-        'User-Agent' : 'request',
         'authorization' : '7McdaRC6fULlka2cPgsZ',
         'version' : '0.0.1',
         'Content-Type' : 'application/json'
@@ -199,6 +198,31 @@ function updateState(namespace, target, type, state) {
             logger("Error updating state for building " + namespace + " and type " + type);
             logger(err);
             return;
+        }
+        var now = new Date();
+        body = JSON.parse(body);
+        var update = {
+            state: state,
+            last_modified: now,
+            last_modified_by: "an_go filewatcher"
+        };
+        if(body.docs) { // document exists, make PUT request
+            var id = body.docs[0]._id;
+            var options = {
+                method : 'PUT',
+                url : "https://buildings.nantum.io/" + namespace + "/states/" + id,
+                headers : headers,
+                json : true,
+                body : { "obj" : update }
+            };
+            request(options, function(err, response, body) {
+                if(err) {
+                    logger("Error updating state document " + id);
+                    logger(err);
+                }
+            });
+        } else { // no document exists, create one with POST
+
         }
     });
 }
