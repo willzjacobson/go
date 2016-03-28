@@ -136,14 +136,68 @@ function create_save_message(json_data) {
         "namespace": building
     };
     var qs = new Buffer( JSON.stringify( query ) ).toString('base64');
-    var getOptions = {
+    var getMessageOptions = {
         "url": "https://buildings.nantum.io/" + building + "/messages/?q=" + qs,
         "method": "GET",
         "headers": headers
     };
 
+
+    // Create/update day time series
+    // var getDayTsOptions = {
+    //     "url": "https://buildings.nantum.io/" + building + "/dayTs/?q=" + qs,
+    //     "method": "GET",
+    //     "headers": headers
+    // };
+
+    // request(getDayTsOptions, function(err, res, body) {
+
+    //     var options = {
+    //         "json": true,
+    //         "headers": headers
+    //     };
+
+    //     if (err) logger("error GETting messages: " + err);
+
+    //     else if (res.statusCode == 200 && body.docs) {
+    //         // If there are more than 0 messages for the day that the prediction is for
+    //         updatedTs = body.docs[0]
+    //         updatedTs.timeSeries.push({
+    //             "score": message.score,
+    //             "prediction-time": message.body.prediction-time,
+    //             "calculationTime": rightNow
+    //         });
+    //         updatedTs.last_modified = rightNow;
+
+    //         options.method = "PUT";
+    //         options.url = "https://buildings.nantum.io/" + building + "/dayTs/" + updatedTs._id;
+    //         options.body = updatedTs;
+
+    //         request(options, function(err, res, body) {
+    //             if (err) logger("error PUTing dayTs: " + err.toString());
+    //             else console.log("Success PUTing dayTs: " + body.toString());
+    //         });
+
+    //     } else if (res.statusCode == 200) {
+    //         // If there is not yet a timeseries for this resource for this prediction day
+    //         var newTs = { "obj": {
+    //                 // BUILD THE OBJECT
+    //             }
+    //         };
+
+    //         options.method = "POST"
+    //         options.url = "https://buildings.nantum.io/" + building + "/dayTs";
+    //         options.body = newTs;
+
+    //         request(options, function(err, res, body) {
+    //             if (err) logger("error POSTing dayTs: " + err.toString());
+    //             else console.log("Success POSTing dayTs: " + body.toString());
+    //         });
+    //     }
+    // });
+
     // Do the request
-    request(getOptions, function(err, res, body) {
+    request(getMessageOptions, function(err, res, body) {
 
         var options = {
             "json": true,
@@ -151,9 +205,8 @@ function create_save_message(json_data) {
             "body": message
         };
 
-        if (err) {
-            logger("error GETting messages: " + err);
-        }
+        if (err) logger("error GETting messages: " + err);
+
         else if (res.statusCode == 200 && body.docs) {
             // If there are more than 0 messages for the day that the prediction is for
 
