@@ -39,7 +39,7 @@ function processFile(path) {
         savePrediction(jfixed);
 
         // create message and add to messages
-        create_save_message(json);
+        create_save_message_dayTs(json);
 
         // Update day's timeseries once that schema exists
 
@@ -59,7 +59,7 @@ function savePrediction(jsonWithoutDotsInKeys) {
             return mongo.insert(db, 'startup_prediction', jsonWithoutDotsInKeys, { 'checkKeys' : false });
         }).then(function(db) { db.close(); })
         .catch(function(err) {
-            logger.error("Error saving prediction to db", { error: err});
+            logger.error("Error saving prediction to db", { error: err.toString() });
             sendSMS("Error saving prediction to db: \n" + err.toString());
         });
 }
@@ -133,6 +133,8 @@ function create_save_message_dayTs(json_data) {
     var analysis_start = "";
     try {
         analysis_start = fs.readFileSync("prediction_start.txt", "utf8");
+    } catch(err) {
+        logger.warn("Could not read analysis start time file", { error: err });
     }
 
     var namespace = "345_Park";
@@ -188,13 +190,13 @@ function create_save_message_dayTs(json_data) {
         .then(function(db) {
             return mongo.update(db,
                         'messages',
-                        { 'namespace' : building, 'name' : action, 'status' : 'pending', 'date' : message_date },
+                        { 'namespace' : namespace, 'name' : action, 'status' : 'pending', 'date' : message_date },
                         { '$set' : { 'status' : 'cancel' }},
                         { 'multi' : true });
         }).then(function(db) {
             return mongo.update(db,
                         'messages',
-                        { 'namespace' : building, 'name' : action, 'status' : 'ack', 'date' : message_date },
+                        { 'namespace' : namespace, 'name' : action, 'status' : 'ack', 'date' : message_date },
                         { '$set' : { 'status' : 'cancel' }},
                         { 'multi' : true });
         }).then(function(db) {
@@ -204,7 +206,7 @@ function create_save_message_dayTs(json_data) {
         }).then(function(db) {
             logger.verbose("done saving message");
         }).catch(function(err) {
-            logger.error("Error saving message to DB", { error: err });
+            logger.error("Error saving message to DB", { error: err.toString() });
         });
 }
 

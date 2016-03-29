@@ -9,7 +9,11 @@ if (!fs.existsSync(logDir)) {
 
 var logger = new(winston.Logger)({
     transports: [
-        new(winston.transports.File)({
+        new(winston.transports.Console)({
+            name: 'console-all',
+            level: 'silly',
+            timestamp: true
+        }),new(winston.transports.File)({
             name: 'file-all',
             filename: path.join(logDir, 'logs-all.log'),
             level: 'silly',
