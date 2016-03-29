@@ -21,11 +21,11 @@ watcher.on('add', processFile);
 
 
 function processFile(path) {
-    logger("New file added: " + path);
+    logger.verbose("New file added: " + path);
     // get json
     fs.readFile(path, 'utf8', function(err, jsonStr) {
         if(err) {
-            logger("Error reading file " + path);
+            logger.error("Error reading file " + path);
             sendSMS("Error reading file " + path);
             return;
         }
@@ -59,7 +59,7 @@ function savePrediction(jsonWithoutDotsInKeys) {
             return mongo.insert(db, 'startup_prediction', jsonWithoutDotsInKeys, { 'checkKeys' : false });
         }).then(function(db) { db.close(); })
         .catch(function(err) {
-            logger("Error saving prediction to db: \n", err);
+            logger.error("Error saving prediction to db", { error: err});
             sendSMS("Error saving prediction to db: \n" + err.toString());
         });
 }
@@ -75,26 +75,24 @@ function archiveFile(filePath, data) {
     };
     s3.putObject(params, function(err, data) {
         if(err) {
-            logger("Error moving file to S3: " + filePath);
+            logger.error("Error moving file to S3: " + filePath, {error: err});
             sendSMS("Error moving file to S3: " + filePath);
-            logger(err);
         } else {
-            logger("Uploaded file to S3: " + filePath);
+            logger.verbose("Uploaded file to S3: " + filePath);
 
             // now move file to archive dir
             var filename = path.basename(filePath);
             var newPath = path.join(archive_directory, filename);
             fs.rename(filePath, newPath, function(err) {
                 if(err) {
-                    logger("Error moving file to archive directory: ", filePath);
-                    logger(err);
+                    logger.error("Error moving file to archive directory: ", filePath, { error: err });
                     sendSMS("Error moving file to archive directory: " + filePath);
-                } else logger("Archived file " + filePath);
+                } else logger.verbose("Archived file " + filePath);
             });
 
             // delete file
             // fs.unlink(filePath, function(err) {
-            //     logger("Error deleting file " + filePath);
+            //     logger.error("Error deleting file " + filePath);
             // });
         }
     });
@@ -204,10 +202,9 @@ function create_save_message_dayTs(json_data) {
         }).then(function(db) {
             db.close();
         }).then(function(db) {
-            logger("done saving message");
+            logger.verbose("done saving message");
         }).catch(function(err) {
-            logger("Error saving message to DB");
-            logger(err);
+            logger.error("Error saving message to DB", { error: err });
         });
 }
 
@@ -228,8 +225,7 @@ function create_or_update(resource, namespace, update, query) {
     // Make get request to find id if document exists
     request(getOptions, function(err, response, body) {
         if(err || response.statusCode != 200) {
-            logger("Error lookup up " + resource + " for building: " + namespace );
-            logger(err);
+            logger.error("Error lookup up " + resource + " for building: " + namespace, { error: err });
             sendSMS("Error looking up " +  resource + " for building: " + namespace + ".\n" + err.toString());
             return;
         }
@@ -261,12 +257,11 @@ function create_or_update(resource, namespace, update, query) {
         // Make the update/save
         request(options, function(err, response, body) {
             if(err) {
-                logger("Error saving " +  resource + " for building: " + namespace);
-                logger(err);
+                logger.error("Error saving " +  resource + " for building: " + namespace, { error: err });
                 sendSMS("Error saving " +  resource + " for building: " + namespace + ".\n" + err.toString());
                 return;
             } else {
-                logger("Successful save/update of " +  resource + " for building: " + namespace);
+                logger.verbose("Successful save/update of " +  resource + " for building: " + namespace);
             }
         });
     });

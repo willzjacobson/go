@@ -9,7 +9,7 @@ require('./watcher.js');
 function scheduleCronJob(timeStr, filePath) {
 	new CronJob(timeStr, function() {
 		var splitPath = filePath.split('/');
-		log('starting ' + splitPath[splitPath.length-1]);
+		log.info('starting ' + splitPath[splitPath.length-1]);
 		runPyScript(filePath);
 	}, null, true, 'America/New_York');
 }
@@ -19,11 +19,11 @@ function scheduleCronJob(timeStr, filePath) {
 function runPyScript(filePath) {
 	PythonShell.run(filePath, function(err, results) {
 		if (err) {
-			log('error: ' + err);
+            log.error('Error running python script', { error: err});
 			sendSMS(err.message);
 		} else {
 			var splitPath = filePath.split('/');
-			log('successfully completing ' + splitPath[splitPath.length-1]);
+			log.info('successfully completing ' + splitPath[splitPath.length-1]);
 			if (results) console.log('results: ' + results);
 		}
 	});
