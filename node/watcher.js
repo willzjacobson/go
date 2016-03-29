@@ -45,8 +45,8 @@ function processFile(path) {
 
         // update state
         var state = json["345_Park"]["random_forest"]["best_start_time"]["time"];
-        create_or_update("345_Park", null, "morning_startup_time", state);
-        create_or_update("345_Park", null, "morning_startup_status", "pending");
+        create_save_state("345_Park", null, "morning_startup_time", state);
+        create_save_state("345_Park", null, "morning_startup_status", "pending");
 
         // archive file
         archiveFile(path, jsonStr);
@@ -67,7 +67,7 @@ function savePrediction(jsonWithoutDotsInKeys) {
 function archiveFile(filePath, data) {
     var bucket = process.env.AWS_S3_JSON_ARCHIVE_BUCKET;
     var key = 'json-archive/' + path.basename(filePath);
-    var s3 = new AWS.S3(); // Add bucket here!
+    var s3 = new AWS.S3(); 
     var params = {
         'Bucket': bucket,
         'Key': key,
@@ -100,7 +100,7 @@ function archiveFile(filePath, data) {
     });
 }
 
-function updateState(namespace, target, type, state) {
+function create_save_state(namespace, target, type, state) {
 
     // Build object to PUT/POST
     var now = new Date();
