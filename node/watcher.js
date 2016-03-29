@@ -126,7 +126,7 @@ function create_save_message_dayTs(json_data) {
     var startup_datetime_str = json_data["345_Park"]["random_forest"]["best_start_time"]["time"];
     var startup_dt = new Date(startup_datetime_str);
     var hours = startup_dt.getUTCHours() - 1;
-    var adj_startup_dt = Date(startup_dt.setUTCHours(hours));
+    var adj_startup_dt = new Date(startup_dt.setUTCHours(hours));
     var message_date = new Date(startup_datetime_str);
     message_date = new Date(message_date.setUTCHours(0,0,0,0));
     var rightNow = new Date();
