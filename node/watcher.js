@@ -115,7 +115,7 @@ function create_save_state(namespace, target, type, state) {
     // Build query string
     var query = {
         type: type,
-        target = target
+        target: target
     }
     query = new Buffer(JSON.stringify(query)).toString('base64');
 
@@ -124,7 +124,7 @@ function create_save_state(namespace, target, type, state) {
 }
 
 
-function create_save_message(json_data) {
+function create_save_message_dayTs(json_data) {
     var startup_datetime_str = json_data["345_Park"]["random_forest"]["best_start_time"]["time"];
     var startup_dt = new Date(startup_datetime_str);
     var hours = startup_dt.getUTCHours() - 1;
@@ -158,97 +158,59 @@ function create_save_message(json_data) {
     };
     var ApiMessage = { obj: message };
 
+    // Build dayTs (will need updating when schema is finalized)
+    var dayTs = {
+        type: "singleDayTs",
+        date: message_date,
+        action: action,
+        namespace: namespace,
+        last_modified: rightNow,
+        ts: [{
+            "prediction_time": adj_startup_dt,
+            score: json_data["345_Park"]["random_forest"]["best_start_time"]["score"],
+            "analysis_time": rightNow
+        }]
+    };
+
     // Build query string
     var query = {
-        name = action,
+        name: action,
         date: message_date,
         namespace: namespace
     };
     query = new Buffer(JSON.stringify(query)).toString('base64');
 
-    // Update the db
-    create_or_update("messages", namespace, ApiMessage, query);
-
-
-    // Create/update day time series
-    // var getDayTsOptions = {
-    //     "url": "https://buildings.nantum.io/" + building + "/dayTs/?q=" + qs,
-    //     "method": "GET",
-    //     "headers": headers
-    // };
-
-    // request(getDayTsOptions, function(err, res, body) {
-
-    //     var options = {
-    //         "json": true,
-    //         "headers": headers
-    //     };
-
-    //     if (err) logger("error GETting messages: " + err);
-
-    //     else if (res.statusCode == 200 && body.docs) {
-    //         // If there are more than 0 messages for the day that the prediction is for
-    //         updatedTs = body.docs[0]
-    //         updatedTs.timeSeries.push({
-    //             "score": message.score,
-    //             "prediction-time": message.body.prediction-time,
-    //             "calculationTime": rightNow
-    //         });
-    //         updatedTs.last_modified = rightNow;
-
-    //         options.method = "PUT";
-    //         options.url = "https://buildings.nantum.io/" + building + "/dayTs/" + updatedTs._id;
-    //         options.body = updatedTs;
-
-    //         request(options, function(err, res, body) {
-    //             if (err) logger("error PUTing dayTs: " + err.toString());
-    //             else console.log("Success PUTing dayTs: " + body.toString());
-    //         });
-
-    //     } else if (res.statusCode == 200) {
-    //         // If there is not yet a timeseries for this resource for this prediction day
-    //         var newTs = { "obj": {
-    //                 // BUILD THE OBJECT
-    //             }
-    //         };
-
-    //         options.method = "POST"
-    //         options.url = "https://buildings.nantum.io/" + building + "/dayTs";
-    //         options.body = newTs;
-
-    //         request(options, function(err, res, body) {
-    //             if (err) logger("error POSTing dayTs: " + err.toString());
-    //             else console.log("Success POSTing dayTs: " + body.toString());
-    //         });
-    //     }
-    // });
+    // Make API call to update the db (off for now since dayTs has no schema and putting messages into db directly)
+    // create_or_update("messages", namespace, ApiMessage, query);
+    // create_or_update("dayTs", namespace, dayTs, query);
 
 
     // Alternately, place message in db directly
-    // mongo.skynetConnection()
-    //     .then(function(db) {
-    //         return mongo.update(db,
-    //                     'messages',
-    //                     { 'namespace' : building, 'name' : action, 'status' : 'pending', 'date' : message_date },
-    //                     { '$set' : { 'status' : 'cancel' }},
-    //                     { 'multi' : true })
-    //     }).then(function(db) {
-    //         return mongo.update(db,
-    //                     'messages',
-    //                     { 'namespace' : building, 'name' : action, 'status' : 'ack', 'date' : message_date },
-    //                     { '$set' : { 'status' : 'cancel' }},
-    //                     { 'multi' : true })
-    //     }).then(function(db) {
-    //         return mongo.insert(db, 'messages', message);
-    //     }).then(function(db) {
-    //         db.close();
-    //     }).then(function(db) {
-    //         logger("done saving message");
-    //     }).catch(function(err) {
-    //         logger("Error saving message to DB");
-    //         logger(err);
-    //     })
+    mongo.skynetConnection()
+        .then(function(db) {
+            return mongo.update(db,
+                        'messages',
+                        { 'namespace' : building, 'name' : action, 'status' : 'pending', 'date' : message_date },
+                        { '$set' : { 'status' : 'cancel' }},
+                        { 'multi' : true });
+        }).then(function(db) {
+            return mongo.update(db,
+                        'messages',
+                        { 'namespace' : building, 'name' : action, 'status' : 'ack', 'date' : message_date },
+                        { '$set' : { 'status' : 'cancel' }},
+                        { 'multi' : true });
+        }).then(function(db) {
+            return mongo.insert(db, 'messages', message);
+        }).then(function(db) {
+            db.close();
+        }).then(function(db) {
+            logger("done saving message");
+        }).catch(function(err) {
+            logger("Error saving message to DB");
+            logger(err);
+        });
 }
+
 
 function create_or_update(resource, namespace, update, query) {
 
@@ -280,9 +242,18 @@ function create_or_update(resource, namespace, update, query) {
             body : update
         };
         body = JSON.parse(body);
+
         if(body.docs) { // document exists, make PUT request
             options.method = 'PUT';
             options.url += body.docs[0]._id;
+
+            // If dayTs, must append info from the latest run and update last_modified (will need updating when schema is finalized)
+            if (resource == "dayTs") {
+                body.timeSeries.push(update.timeSeries[0]);
+                body.last_modified = update.last_modified;
+                options.body = body;
+            }
+
         } else { // no document exists, create one with POST
             options.method = 'POST';
         }
