@@ -6,6 +6,7 @@ var request = require('request');
 var path = require('path');
 var logger = require('./logger');
 var mongo = require('./mongo-utils');
+var sendSMS = require('./sms');
 
 var home = process.env.HOME;
 var log_directory = path.join(home,".larkin/jsons/startup");
@@ -25,6 +26,7 @@ function processFile(path) {
     fs.readFile(path, 'utf8', function(err, jsonStr) {
         if(err) {
             logger("Error reading file " + path);
+            sendSMS("Error reading file " + path);
             return;
         }
         // manually updated decimals in key names until analytics output changes
@@ -39,12 +41,12 @@ function processFile(path) {
         // create message and add to messages
         create_save_message(json);
 
-        // Update day's timeseries
+        // Update day's timeseries once that schema exists
 
         // update state
         var state = json["345_Park"]["random_forest"]["best_start_time"]["time"];
-        updateState("345_Park", null, "morning_startup_time", state);
-        updateState("345_Park", null, "morning_startup_status", "pending");
+        create_save_state("345_Park", null, "morning_startup_time", state);
+        create_save_state("345_Park", null, "morning_startup_status", "pending");
 
         // archive file
         archiveFile(path, jsonStr);
@@ -56,13 +58,16 @@ function savePrediction(jsonWithoutDotsInKeys) {
         .then(function(db) {
             return mongo.insert(db, 'startup_prediction', jsonWithoutDotsInKeys, { 'checkKeys' : false });
         }).then(function(db) { db.close(); })
-        .catch(function(err) { console.log("Error: ", err); });
+        .catch(function(err) { 
+            logger("Error saving prediction to db: \n", err);
+            sendSMS("Error saving prediction to db: \n" + err.toString());
+        });
 }
 
 function archiveFile(filePath, data) {
     var bucket = process.env.AWS_S3_JSON_ARCHIVE_BUCKET;
     var key = 'json-archive/' + path.basename(filePath);
-    var s3 = new AWS.S3();
+    var s3 = new AWS.S3(); 
     var params = {
         'Bucket': bucket,
         'Key': key,
@@ -71,6 +76,7 @@ function archiveFile(filePath, data) {
     s3.putObject(params, function(err, data) {
         if(err) {
             logger("Error moving file to S3: " + filePath);
+            sendSMS("Error moving file to S3: " + filePath);
             logger(err);
         } else {
             logger("Uploaded file to S3: " + filePath);
@@ -82,6 +88,7 @@ function archiveFile(filePath, data) {
                 if(err) {
                     logger("Error moving file to archive directory: ", filePath);
                     logger(err);
+                    sendSMS("Error moving file to archive directory: " + filePath);
                 } else logger("Archived file " + filePath);
             });
 
@@ -91,6 +98,29 @@ function archiveFile(filePath, data) {
             // });
         }
     });
+}
+
+function create_save_state(namespace, target, type, state) {
+
+    // Build object to PUT/POST
+    var now = new Date();
+    var update = { "obj" : {} };
+    update.obj.namespace = namespace;
+    update.obj.type = type;
+    update.obj.state = state;
+    update.obj.last_modified = now;
+    update.obj.last_modified_by = "an_go filewatcher";
+    if(target) { update.obj.target = target; }
+
+    // Build query string
+    var query = {
+        type: type,
+        target = target
+    }
+    query = new Buffer(JSON.stringify(query)).toString('base64');
+
+    // Update the db
+    create_or_update("states", namespace, update, query);
 }
 
 
@@ -104,11 +134,12 @@ function create_save_message(json_data) {
     var rightNow = new Date();
     var analysis_start = fs.readFileSync("py_jobs/prediction_start.txt", "utf8");
 
-    var building = "345_Park";
+    var namespace = "345_Park";
     var action = "morning-startup";
 
+    // Build message
     var message = { "obj": {
-            "namespace": building,
+            "namespace": namespace,
             "date": message_date,
             "name": action,
             "body": {
@@ -124,23 +155,16 @@ function create_save_message(json_data) {
         }
     };
 
-    // Use node request library to update the message for this prediction day, or post one if one doesn't exits
-    var headers = {
-        "authorization": "7McdaRC6fULlka2cPgsZ",
-        "version": "0.0.1",
-        "Content-Type": "application/json"
-    };
+    // Build query string
     var query = {
-        "name": "morning-startup",
-        "date": message_date,
-        "namespace": building
+        name = action,
+        date: message_date,
+        namespace: namespace
     };
-    var qs = new Buffer( JSON.stringify( query ) ).toString('base64');
-    var getMessageOptions = {
-        "url": "https://buildings.nantum.io/" + building + "/messages/?q=" + qs,
-        "method": "GET",
-        "headers": headers
-    };
+    query = new Buffer(JSON.stringify(query)).toString('base64');
+
+    // Update the db
+    create_or_update("messages", namespace, message, query);
 
 
     // Create/update day time series
@@ -196,40 +220,6 @@ function create_save_message(json_data) {
     //     }
     // });
 
-    // Do the request
-    request(getMessageOptions, function(err, res, body) {
-
-        var options = {
-            "json": true,
-            "headers": headers,
-            "body": message
-        };
-
-        if (err) logger("error GETting messages: " + err);
-
-        else if (res.statusCode == 200 && body.docs) {
-            // If there are more than 0 messages for the day that the prediction is for
-
-            options.method = "PUT";
-            options.url = "https://buildings.nantum.io/" + building + "/messages/" + body.docs[0]._id;
-
-            request(options, function(err, res, body) {
-                if (err) logger("error PUTing message: " + err.toString());
-                else console.log("Success PUTing message: " + body.toString());
-            });
-
-        } else if (res.statusCode == 200) {
-            // If there are not yet messages for the day the prediction is for
-
-            options.method = "POST";
-            options.url = "https://buildings.nantum.io/" + building + "/messages";
-
-            request(options, function(err, res, body) {
-                if (err) logger("error POSTing message: " + err.toString());
-                else console.log("Success POSTing message: " + body.toString());
-            });
-        }
-    });
 
     // Alternately, place message in db directly
     // mongo.skynetConnection()
@@ -256,45 +246,34 @@ function create_save_message(json_data) {
     //     })
 }
 
-
-function updateState(namespace, target, type, state) {
-    // make GET request to find ID
-    var query = {
-        "type" : type,
-        "target" : target
-    };
-    query = new Buffer(JSON.stringify(query)).toString('base64')
+function create_or_update(resource, namespace, update, query) {
+    
+    // Define headers and options for GET request
     var headers = {
         'authorization' : '7McdaRC6fULlka2cPgsZ',
         'version' : '0.0.1',
         'Content-Type' : 'application/json'
     };
-    var options = {
-        url : "https://buildings.nantum.io/" + namespace + "/states?q=" + query,
+    var getOptions = {
+        url : "https://buildings.nantum.io/" + namespace + "/" + resource + "?q=" + query,
         headers : headers
     };
-    request(options, function(err, response, body) {
-        if(err) {
-            logger("Error lookup up state for building/target/type: " + namespace + "/" + target + "/" + type);
+
+    // Make get request to find id if document exists
+    request(getOptions, function(err, response, body) {
+        if(err || response.statusCode != 200) {
+            logger("Error lookup up " + resource + " for building: " + namespace );
             logger(err);
+            sendSMS("Error looking up " +  resource + " for building: " + namespace + ".\n" + err.toString());
             return;
         }
 
-        var now = new Date();
-        var update = {
-            namespace: namespace,
-            type: type,
-            state: state,
-            last_modified: now,
-            last_modified_by: "an_go filewatcher"
-        };
-        if(target) { update.target = target; }
-        var options = {
-            method : 'PUT',
-            url : "https://buildings.nantum.io/" + namespace + "/states/",
+        // Define options for update/save
+        var options = { 
+            url : "https://buildings.nantum.io/" + namespace + "/" + resource + "/",
             headers : headers,
             json : true,
-            body : { "obj" : update }
+            body : update
         };
         body = JSON.parse(body);
         if(body.docs) { // document exists, make PUT request
@@ -303,13 +282,17 @@ function updateState(namespace, target, type, state) {
         } else { // no document exists, create one with POST
             options.method = 'POST';
         }
+
+        // Make the update/save
         request(options, function(err, response, body) {
             if(err) {
-                logger("Error saving state for building/target/type: " + namespace + "/" + target + "/" + type);
+                logger("Error saving " +  resource + " for building: " + namespace);
                 logger(err);
+                sendSMS("Error saving " +  resource + " for building: " + namespace + ".\n" + err.toString());
                 return;
+            } else {
+                logger("Successful save/update of " +  resource + " for building: " + namespace);
             }
-            // TODO: check for OK status code
         });
     });
 }
