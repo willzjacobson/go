@@ -58,7 +58,7 @@ function savePrediction(jsonWithoutDotsInKeys) {
         .then(function(db) {
             return mongo.insert(db, 'startup_prediction', jsonWithoutDotsInKeys, { 'checkKeys' : false });
         }).then(function(db) { db.close(); })
-        .catch(function(err) { 
+        .catch(function(err) {
             logger("Error saving prediction to db: \n", err);
             sendSMS("Error saving prediction to db: \n" + err.toString());
         });
@@ -67,7 +67,7 @@ function savePrediction(jsonWithoutDotsInKeys) {
 function archiveFile(filePath, data) {
     var bucket = process.env.AWS_S3_JSON_ARCHIVE_BUCKET;
     var key = 'json-archive/' + path.basename(filePath);
-    var s3 = new AWS.S3(); 
+    var s3 = new AWS.S3();
     var params = {
         'Bucket': bucket,
         'Key': key,
@@ -132,28 +132,31 @@ function create_save_message(json_data) {
     var message_date = new Date(startup_datetime_str);
     message_date = new Date(message_date.setUTCHours(0,0,0,0));
     var rightNow = new Date();
-    var analysis_start = fs.readFileSync("py_jobs/prediction_start.txt", "utf8");
+    var analysis_start = "";
+    try {
+        analysis_start = fs.readFileSync("prediction_start.txt", "utf8");
+    }
 
     var namespace = "345_Park";
     var action = "morning-startup";
 
     // Build message
-    var message = { "obj": {
-            "namespace": namespace,
-            "date": message_date,
-            "name": action,
-            "body": {
-                "score": json_data["345_Park"]["random_forest"]["best_start_time"]["score"],
-                "prediction-time" : adj_startup_dt,
-                "analysis-start-time" : analysis_start,
-                "analysis-finish-time" : rightNow
-            },
-            "status": "pending",
-            "time": adj_startup_dt,
-            "type": "alert",
-            "fe_vis": true
-        }
+    var message = {
+        "namespace": namespace,
+        "date": message_date,
+        "name": action,
+        "body": {
+            "score": json_data["345_Park"]["random_forest"]["best_start_time"]["score"],
+            "prediction-time" : adj_startup_dt,
+            "analysis-start-time" : analysis_start,
+            "analysis-finish-time" : rightNow
+        },
+        "status": "pending",
+        "time": adj_startup_dt,
+        "type": "alert",
+        "fe_vis": true
     };
+    var ApiMessage = { obj: message };
 
     // Build query string
     var query = {
@@ -164,7 +167,7 @@ function create_save_message(json_data) {
     query = new Buffer(JSON.stringify(query)).toString('base64');
 
     // Update the db
-    create_or_update("messages", namespace, message, query);
+    create_or_update("messages", namespace, ApiMessage, query);
 
 
     // Create/update day time series
@@ -240,14 +243,15 @@ function create_save_message(json_data) {
     //     }).then(function(db) {
     //         db.close();
     //     }).then(function(db) {
-    //         console.log("done saving message");
+    //         logger("done saving message");
     //     }).catch(function(err) {
-    //         console.log("Error:", err);
+    //         logger("Error saving message to DB");
+    //         logger(err);
     //     })
 }
 
 function create_or_update(resource, namespace, update, query) {
-    
+
     // Define headers and options for GET request
     var headers = {
         'authorization' : '7McdaRC6fULlka2cPgsZ',
@@ -269,7 +273,7 @@ function create_or_update(resource, namespace, update, query) {
         }
 
         // Define options for update/save
-        var options = { 
+        var options = {
             url : "https://buildings.nantum.io/" + namespace + "/" + resource + "/",
             headers : headers,
             json : true,
