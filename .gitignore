@@ -1,5 +1,6 @@
 node_modules
 node/logs.log
+node/logs
 node/.env
 secrets.js
 **/.DS_Store
