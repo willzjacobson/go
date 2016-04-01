@@ -153,7 +153,7 @@ function create_save_message_dayTs(json_data) {
         },
         "status": "pending",
         "time": adj_startup_dt,
-        "type": "alert",
+        "type": "mode",
         "fe_vis": true
     };
     var ApiMessage = { obj: message };
