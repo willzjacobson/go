@@ -20,7 +20,7 @@ function runPyScript(filePath) {
 	PythonShell.run(filePath, function(err, results) {
 		if (err) {
             log.error('Error running python script', { error: err});
-			sendSMS(err.message);
+			sendSMS(err);
 		} else {
 			var splitPath = filePath.split('/');
 			log.info('successfully completing ' + splitPath[splitPath.length-1]);
