@@ -3,7 +3,7 @@ os: linux
 
 files:
   - source: /
-    destination: /var/analytics/djjs
+    destination: /var/analytics/an_go
 
 hooks:
   BeforeInstall:
