@@ -1,0 +1,12 @@
+version: 0.0
+os: linux 
+
+files:
+  - source: /
+    destination: /var/analytics/djjs
+
+hooks:
+  BeforeInstall:
+    - location: /var/analytics/djjs/bash_scripts/before_install.sh
+  AfterInstall:
+    - location: /var/analytics/djjs/bash_scripts/after_install.sh
