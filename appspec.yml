@@ -6,7 +6,5 @@ files:
     destination: /var/analytics/an_go
 
 hooks:
-  BeforeInstall:
-    - location: /bash_scripts/before_install.sh
   AfterInstall:
     - location: /bash_scripts/after_install.sh
