@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # s3 bucket name and db login info
-aws s3 cp s3://pdanalytics/.env /var/analytics/an_go/node/.env --region us-east-1
+aws s3 cp s3://pdanalytics/.env /var/analytics/an_go/.env --region us-east-1
 
 mv /var/analytics/an_go/an_go.conf /etc/init/an_go.conf
 
