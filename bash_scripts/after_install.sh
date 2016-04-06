@@ -8,3 +8,5 @@ aws s3 cp s3://pdanalytics/.env .env
 mv /var/analytics/an_go/an_go.conf /etc/init/an_go.conf
 
 npm install
+
+reboot
